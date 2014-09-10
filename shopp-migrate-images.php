@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp Migrate Images
-Version: 1.0.4
+Version: 1.0.5
 Description: This plugin gives a very basic MailChimp/Shopp integration. This plugin is part of the <a href="http://www.shopptoolbox.com">Shopp Toolbox</a>
 Plugin URI: http://www.shopptoolbox.com
 Author: Shopp Toolbox
@@ -18,23 +18,21 @@ Author URI: http://www.shopptoolbox.com
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with this plugin.  If not, see <http://www.gnu.org/licenses/>. 
+	along with this plugin.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 if(!defined('ABSPATH')) die();
 
-require('lib/Update.php');
 require('lib/welcome.php');
 
-$ShoppMigrateImages = new ShoppMigrateImages();	
+$ShoppMigrateImages = new ShoppMigrateImages();
 
 class ShoppMigrateImages{
 	var $name = 'Shopp Migrate Images';
 	var $short_name = 'Migrate Images';
 	var $product = 'shopp-migrate-images';
-	
+
 	function __construct(){
-		add_action('init', array(&$this, 'updater'));
 		add_action('admin_menu', array(&$this, 'add_menu'), 99);
 	}
 
@@ -60,15 +58,6 @@ class ShoppMigrateImages{
 		}
 	}
 
-	function updater(){
-        $args = array(
-            'basename' => plugin_basename( __FILE__ ), //required
-            'product_name' => 'shopp-migrate-images',  //post slug - must match
-        );
-        new ShoppToolbox_Updater($args);
-
-	}
-
 	function on_activation(){
 		$this->do_upgrade();
 	}
@@ -81,7 +70,7 @@ class ShoppMigrateImages{
 
 		$return = false;
 		foreach($menu as $menus => $item){
-            if($item[0] == 'Shopp Toolbox'){
+			if($item[0] == 'Shopp Toolbox'){
 				$return = true;
 			}
 		}
@@ -91,13 +80,13 @@ class ShoppMigrateImages{
 	function get_path(){
 		chdir(WP_CONTENT_DIR);
 		$FSStorage = shopp_meta(false, 'shopp', 'FSStorage', 'setting');
-    	if(!empty($FSStorage)){
-    		foreach($FSStorage as $id => $obj){
-    			return trailingslashit(realpath($obj->value['path']['image']));
-    		}
-    	}
+			if(!empty($FSStorage)){
+				foreach($FSStorage as $id => $obj){
+					return trailingslashit(realpath($obj->value['path']['image']));
+				}
+			}
 
-    	return false;
+			return false;
 	}
 
 	function is_image_fsstorage(){
@@ -123,7 +112,7 @@ class ShoppMigrateImages{
 		global $wpdb;
 		set_time_limit(900);
 		ini_set('memory_limit', '256M');
-		
+
 		$image_path = $this->get_path();
 		$image_count = $this->get_image_count();
 
@@ -134,12 +123,20 @@ class ShoppMigrateImages{
 			$obj = unserialize($row->value);
 
 			if($obj->storage == 'DBStorage'){
+
 				if(empty($obj->uri)){
 					shopp_rmv_meta($row->id);
 					continue;
 				}
 
 				$blob = $wpdb->get_var($wpdb->prepare("SELECT data FROM ".$wpdb->prefix."shopp_asset WHERE id = %d", $obj->uri));
+
+				//skip any rows that don't have data in them
+				if(empty($blob)){
+					shopp_rmv_meta($row->id);
+					continue;
+				}
+
 				$result = file_put_contents($image_path . $obj->filename, $blob);
 
 				if(!$result){
@@ -171,31 +168,31 @@ class ShoppMigrateImages{
 	}
 
 	function display_save_meta(){
-        $options = get_option($this->product);
+				$options = get_option($this->product);
 ?>
-        <input type="hidden" name="<?php echo $this->product; ?>_save" value="true" />
-        <input type="submit" class="button-primary" value="Migrate Images" name="submit" />
-<?php        
-    }
+				<input type="hidden" name="<?php echo $this->product; ?>_save" value="true" />
+				<input type="submit" class="button-primary" value="Migrate Images" name="submit" />
+<?php
+		}
 
-    function display_images_meta(){
-    	//GRAB PATH
-    	$image_path = $this->get_path();
-    	if(!$image_path){
-    		echo '<div class="error"><p>We could not find the image path. Please set it under Shopp->System->Image Storage</p></div>';
-    	}
+		function display_images_meta(){
+			//GRAB PATH
+			$image_path = $this->get_path();
+			if(!$image_path){
+				echo '<div class="error"><p>We could not find the image path. Please set it under Shopp->System->Image Storage</p></div>';
+			}
 
-    	if(!$this->is_image_fsstorage()){
-    		echo '<div class="error"><p>It looks like you\'re not using the File System Storage Module. Please set it under Shopp->System->Image Storage</p></div>';
-    	}
+			if(!$this->is_image_fsstorage()){
+				echo '<div class="error"><p>It looks like you\'re not using the File System Storage Module. Please set it under Shopp->System->Image Storage</p></div>';
+			}
 
-    	//is writabel?
-    	if(!is_writable($image_path)){
-    		echo '<div class="error"><p>Hey, whoa! We can\'t write to the image folder. You need to fix this!</p></div>';
-    	}
+			//is writable?
+			if(!is_writable($image_path)){
+				echo '<div class="error"><p>Hey, whoa! We can\'t write to the image folder. You need to fix this!</p></div>';
+			}
 
-    	//GRAB COUNT
-    	$image_count = $this->get_image_count();
+			//GRAB COUNT
+			$image_count = $this->get_image_count();
 ?>
 		<div>
 			<ol>
@@ -217,7 +214,7 @@ class ShoppMigrateImages{
 			</ol>
 		</div>
 <?php
-    }
+		}
 
 	function display_settings(){
 		$options = get_option($product);
@@ -232,47 +229,47 @@ class ShoppMigrateImages{
 			}
 		}
 ?>
-        <div id="<?php echo esc_attr($this->product); ?>" class="wrap">
-            <h2><?php echo esc_attr($this->name); ?></h2>
-            <div class="description">
-                <p>This plugin allows you to migrate images that are stored in the database to actual files on the file system in batches of 500. <strong>For Shopp 1.2.x only and PLEASE backup your database before starting this!</strong></p>
-            </div>
-            <form action="" method="post">
-                    <div id="poststuff" class="metabox-holder has-right-sidebar">
-                        <div id="side-info-column" class="inner-sidebar">
-                            <?php do_meta_boxes('shopp-toolbox_page_'.$this->product, 'side', null); ?>
-                        </div>
+				<div id="<?php echo esc_attr($this->product); ?>" class="wrap">
+						<h2><?php echo esc_attr($this->name); ?></h2>
+						<div class="description">
+								<p>This plugin allows you to migrate images that are stored in the database to actual files on the file system in batches of 500. <strong>This is not a destructive process! If something goes wrong, </strong></p>
+						</div>
+						<form action="" method="post">
+										<div id="poststuff" class="metabox-holder has-right-sidebar">
+												<div id="side-info-column" class="inner-sidebar">
+														<?php do_meta_boxes('shopp-toolbox_page_'.$this->product, 'side', null); ?>
+												</div>
 
-                        <div id="post-body" class="has-sidebar">
-                        <div id="post-body-content" class="has-sidebar-content">
-                            <div id="titlediv">
-                                <div id="titlewrap">
-                                </div>
-                                <div class="inside">
-                                    <?php do_meta_boxes('shopp-toolbox_page_'.$this->product, 'normal', null); ?>
-                                </div>
-                            </div>
-                        </div>
-                        </div>
+												<div id="post-body" class="has-sidebar">
+												<div id="post-body-content" class="has-sidebar-content">
+														<div id="titlediv">
+																<div id="titlewrap">
+																</div>
+																<div class="inside">
+																		<?php do_meta_boxes('shopp-toolbox_page_'.$this->product, 'normal', null); ?>
+																</div>
+														</div>
+												</div>
+												</div>
 
-                    </div>
-                <?php wp_nonce_field('nonce_save_settings', $this->product.'_nonce'); ?>
-           </form>
-        </div>
-<?php	 	 	
-	}	
+										</div>
+								<?php wp_nonce_field('nonce_save_settings', $this->product.'_nonce'); ?>
+					</form>
+				</div>
+<?php
+	}
 
 	/**
-	 * Converts natural language text to boolean values
-	 *
-	 * Used primarily for handling boolean text provided in shopp() tag options.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 *
-	 * @param string $value The natural language value
-	 * @return boolean The boolean value of the provided text
-	 **/
+	* Converts natural language text to boolean values
+	*
+	* Used primarily for handling boolean text provided in shopp() tag options.
+	*
+	* @author Jonathan Davis
+	* @since 1.0
+	*
+	* @param string $value The natural language value
+	* @return boolean The boolean value of the provided text
+	**/
 	function value_is_true ($value) {
 		switch (strtolower($value)) {
 			case "yes": case "true": case "1": case "on": return true;
@@ -280,5 +277,3 @@ class ShoppMigrateImages{
 		}
 	}
 }
-
-?>
