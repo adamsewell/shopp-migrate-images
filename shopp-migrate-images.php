@@ -2,7 +2,7 @@
 /*
 Plugin Name: Shopp Migrate Images
 Version: 1.0.5
-Description: This plugin gives a very basic MailChimp/Shopp integration. This plugin is part of the <a href="http://www.shopptoolbox.com">Shopp Toolbox</a>
+Description: This plugin will migrate images stored in the database to the filesystem. This plugin is part of the <a href="http://www.shopptoolbox.com">Shopp Toolbox</a>
 Plugin URI: http://www.shopptoolbox.com
 Author: Shopp Toolbox
 Author URI: http://www.shopptoolbox.com
