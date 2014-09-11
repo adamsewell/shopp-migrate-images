@@ -223,7 +223,7 @@ class ShoppMigrateImages{
 			$results = $this->migrate_images();
 
 			if($results){
-				echo '<div class="updated"><p>500 images migrated successfully! The last ID was: '.$results.'</p></div>';
+				echo '<div class="updated"><p>Images migrated successfully! The last ID was: '.$results.'</p></div>';
 			}else{
 				echo '<div class="error"><p>We ran into an issue migrating the images... probably the MySQL server went away or the script timed out. Try running the script again to pick up where we left off.</p></div>';
 			}
